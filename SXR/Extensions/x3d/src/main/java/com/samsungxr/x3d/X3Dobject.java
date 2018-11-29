@@ -3844,21 +3844,33 @@ public class X3Dobject {
                         if ( ar ) {
                             try {
                                 Log.e("X3DDBG", "<Scene> make call to ARMain.");
-                                arMain = new ARMain(gvrContext, shaderSettings, x3DShader);
+                                arMain = new ARMain(gvrContext, root, shaderSettings, x3DShader);
                                 Log.e("X3DDBG", "X3DObject, Call to arMain.resume()");
                                 arMain.resume();
                                 Log.e("X3DDBG", "   X3DObject, arMain.resume() RETURN");
-                                float[] pose = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
                                 //if ( currentNode == null ) Log.e("X3DDBG", "X3DObject <Scene> currentNode == null");
                                 //else Log.e("X3DDBG", "X3DObject <Scene> currentNode NOT= null");
                                 // an Augemented Reality scene
 
+                                /*
                                 //SXRNode arAnchorObj = arMain.getSXRMixedReality().createAnchorNode(pose);
                                 SXRMixedReality sxrMixedReality = arMain.getSXRMixedReality();
                                 //currentNode = arMain.getSXRMixedReality().createAnchorNode(pose);
                                 //SXRAnchor anchor = (SXRAnchor) currentNode.getComponent(SXRAnchor.getComponentType());
-                                Log.e("X3DDBG", "   X3DObject <Scene> createAnchorNode()");
-                                SXRNode arAnchorObj = sxrMixedReality.createAnchorNode(pose);
+
+                                Log.e("X3DDBG", "X3DObject <Scene> createAnchorNode()");
+                                float[] pose = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
+                                SXRNode arAnchorObj = null;
+                                try {
+                                    arAnchorObj = sxrMixedReality.createAnchorNode(pose);
+                                }
+                                catch (com.google.ar.core.exceptions.NotTrackingException nte) {
+                                    Log.e("X3DDBG", "X3DObject <Scene> arAnchorObj NotTrackingException " + nte);
+                                }
+                                catch (Exception e) {
+                                    Log.e("X3DDBG", "X3DObject <Scene> arAnchorObj Exception " + e);
+                                }
+                                //SXRNode arAnchorObj = sxrMixedReality.createAnchorNode(pose);
                                 Log.e("X3DDBG", "   X3DObject <Scene> get ARCoreAnchor");
                                 ARCoreAnchor anchor = (ARCoreAnchor) arAnchorObj.getComponent(SXRAnchor.getComponentType());
                                 // commented out cause I reset 'setTrackingState' back to protected
@@ -3869,7 +3881,9 @@ public class X3Dobject {
                                 root.addChildObject( arAnchorObj );
                                 //root.addNode(arAnchorObj);
                                 currentNode = arAnchorObj;
-
+                                //Log.e("X3DDBG", "X3DObject, Call to arMain.resume()");
+                                //arMain.resume();
+                                */
                             } catch (Exception e) {
                                 Log.e("X3DDBG", "X3Dobject, <Scene> Error invoking AR: " + e);
                                 Log.e(TAG, "Error invoking Augmented Reality: " + e);
@@ -4327,6 +4341,38 @@ public class X3Dobject {
                     }  // end arMain == null
                     else {
                         //AR content
+                        // copied from <Scene>
+                        //SXRNode arAnchorObj = arMain.getSXRMixedReality().createAnchorNode(pose);
+                        /*
+                        SXRMixedReality sxrMixedReality = arMain.getSXRMixedReality();
+                         if ( sxrMixedReality == null ) Log.e("X3DDBG", "X3DObject </Scene> sxrMixedReality == null");
+                        //currentNode = arMain.getSXRMixedReality().createAnchorNode(pose);
+                        //SXRAnchor anchor = (SXRAnchor) currentNode.getComponent(SXRAnchor.getComponentType());
+                        Log.e("X3DDBG", "X3DObject </Scene> createAnchorNode()");
+                        float[] pose = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
+                        SXRNode arAnchorObj = null;
+                        try {
+                            arAnchorObj = sxrMixedReality.createAnchorNode(pose);
+                        }
+                        catch (com.google.ar.core.exceptions.NotTrackingException nte) {
+                            Log.e("X3DDBG", "X3DObject </Scene> arAnchorObj NotTrackingException " + nte);
+                        }
+                        catch (Exception e) {
+                            Log.e("X3DDBG", "X3DObject </Scene> arAnchorObj Exception " + e);
+                        }
+                        Log.e("X3DDBG", "   X3DObject <Scene> get ARCoreAnchor");
+                        ARCoreAnchor anchor = (ARCoreAnchor) arAnchorObj.getComponent(SXRAnchor.getComponentType());
+                        // commented out cause I reset 'setTrackingState' back to protected
+                        //anchor.setTrackingState(SXRTrackingState.PAUSED );
+                        //SXRAnchor sxrAnchor = (SXRAnchor) anchor;
+                        Log.e("X3DDBG", "   X3DObject <Scene> addSXRAnchor()");
+                        arMain.addSXRAnchor( (SXRAnchor) anchor );
+                        root.addChildObject( arAnchorObj );
+                        //root.addNode(arAnchorObj);
+                        currentNode = arAnchorObj;
+                        */
+
+                        // end copy from </Scene>
                         //arMain.attachComponentsAndEvents(gvrContext, currentNode);
                         mainCameraRig.getTransform().setPosition(0, 0, 0);
                         if (currentNode != null) arMain.attachComponentsAndEvents(gvrContext, currentNode);
@@ -4477,6 +4523,7 @@ public class X3Dobject {
 
         } catch (Exception exception) {
 
+            Log.e("X3DDBG", "X3Dobject Exception = " + exception);
             Log.e(TAG, "X3D/XML Parsing Exception = " + exception);
         }
 
