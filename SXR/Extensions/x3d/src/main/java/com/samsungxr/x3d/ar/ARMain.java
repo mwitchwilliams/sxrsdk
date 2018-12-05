@@ -513,18 +513,22 @@ public class ARMain {
                 //Log.e("X3DDBG", "ARMain onTouchEnd() findAnchorNear(" + pickInfo.hitLocation[0] + ", " +
                 //                                pickInfo.hitLocation[1] + ", " +
                 //                                pickInfo.hitLocation[2] +")");
-                SXRAnchor anchor = findAnchorNear(pickInfo.hitLocation[0],
-                        pickInfo.hitLocation[1],
-                        pickInfo.hitLocation[2],
-                        300);
+                try {
+                    SXRAnchor anchor = findAnchorNear(pickInfo.hitLocation[0],
+                            pickInfo.hitLocation[1],
+                            pickInfo.hitLocation[2],
+                            300);
+                }
+                catch(Exception e) {
+                    Log.e("X3DDBG", "ARMain onTouchEnd() findAnchorNear Exception: " + e);
+                }
             //    if (anchor != null) {
             //        Log.e("X3DDBG", "ARMain onTouchEnd() anchor != null");
             //        return;
             //    }
-                Log.e("X3DDBG", "ARMain onTouchEnd() anchor(x,y,z) (" + anchor.getTransform().getPositionX()
-                        + ", " + anchor.getTransform().getPositionY() + ", " + anchor.getTransform().getPositionZ() +")" );
                 float x = pickInfo.motionEvent.getX();
                 float y = pickInfo.motionEvent.getY();
+                Log.e("X3DDBG", "ARMain onTouchEnd() anchor(x,y) (" + x + ", " + y +")" );
                 SXRHitResult hit = mMixedReality.hitTest(x, y);
                 if (hit != null) {
                     Log.e("X3DDBG", "ARMain onTouchEnd() hit != null, (x, y) " + x + ", " + y + " Call addVirtualObject()");
@@ -568,29 +572,34 @@ public class ARMain {
          */
         private SXRAnchor findAnchorNear(float x, float y, float z, float maxdist)
         {
-            //Log.e("X3DDBG", "ARMain findAnchorNear(" + x + ", " + y + ", " + z + ")");
-            Matrix4f anchorMtx = new Matrix4f();
-            Vector3f v = new Vector3f();
-            for (SXRAnchor anchor : mVirtualObjects)
-            {
-                //Log.e("X3DDBG", "ARMain findAnchorNear for anchor");
-                float[] anchorPose = anchor.getPose();
-                anchorMtx.set(anchorPose);
-                anchorMtx.getTranslation(v);
-                v.x -= x;
-                v.y -= y;
-                v.z -= z;
-                float d = v.length();
-                if (d < maxdist)
-                {
-                    //Log.e("X3DDBG", "ARMain findAnchorNear return anchor");
-                    return anchor;
+            try {
+                //Log.e("X3DDBG", "ARMain findAnchorNear(" + x + ", " + y + ", " + z + ")");
+                Matrix4f anchorMtx = new Matrix4f();
+                Vector3f v = new Vector3f();
+                for (SXRAnchor anchor : mVirtualObjects) {
+                    //Log.e("X3DDBG", "ARMain findAnchorNear for anchor");
+                    Log.e("X3DDBG", "ARMain findAnchorNear(" + x + ", " + y + ", " + z + ")");
+                    float[] anchorPose = anchor.getPose();
+                    anchorMtx.set(anchorPose);
+                    anchorMtx.getTranslation(v);
+                    v.x -= x;
+                    v.y -= y;
+                    v.z -= z;
+                    float d = v.length();
+                    Log.e("X3DDBG", "ARMain findAnchorNear x,y,z,d = "+ x + ", " + y + ", " + z + ", "+ d );
+                    if (d < maxdist) {
+                        //Log.e("X3DDBG", "ARMain findAnchorNear return anchor");
+                        return anchor;
+                    }
                 }
+            }
+            catch (Exception e) {
+                Log.e("X3DDBG", "ARMain findAnchorNear exception: " + e);
             }
             //Log.e("X3DDBG", "ARMain findAnchorNear return null");
             return null;
-        }
-    };
+        } // end findAnchorNear
+    };  // end DragHandler
 
 
     /**
@@ -683,11 +692,15 @@ public class ARMain {
 
             SXRAnchor anchor = (SXRAnchor) anchorObj.getComponent(SXRAnchor.getComponentType());
             addSXRAnchor( anchor );
-            mMainScene.addNode(anchorObj);
+            //mMainScene.addNode(anchorObj);
 
-            if (mInitAnchorNodeSet) {
-                // initial scene, now set up the animations and interactivity
+            if ( !mInitAnchorNodeSet ) {
+                mMainScene.addNode(anchorObj);
+            }
+            else if (mInitAnchorNodeSet) {
                 Log.e("X3DDBG", "ARMain addVirtualObject, add initial scene");
+                mRoot.addChildObject( anchorObj );
+                // initial scene, now set up the animations and interactivity
                 if (mAnimationInteractivityManager != null) {
                     try {
                         SXRNode sxrNodeCapture = mMainScene.getNodeByName("OrangeCone");
