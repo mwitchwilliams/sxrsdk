@@ -2279,6 +2279,12 @@ public class AnimationInteractivityManager {
                                         gvrComponent.setEnable(sfBool.getValue());
                                     }
                                 }  //  end if the Node has a light component attached
+                                else if ( scriptObjectToDefinedItem.getInlineObject() != null) {
+                                    scriptObjectToDefinedItem.getInlineObject().setLoad( sfBool.getValue() );
+                                }
+                                else  {
+                                    Log.e(TAG, "Not setting SFBool '" + scriptObject.getFieldName(fieldNode) + "' value from SCRIPT '" + scriptObject.getName() + "'." );
+                                }
                             }  //  end scriptObjectToDefinedItem != null
                             else if ( scriptObjectToEventUtility != null) {
                                 scriptObjectToEventUtility.setToggle(sfBool.getValue());

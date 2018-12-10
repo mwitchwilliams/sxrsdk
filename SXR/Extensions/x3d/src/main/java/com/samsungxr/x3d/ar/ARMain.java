@@ -39,6 +39,7 @@ import com.samsungxr.mixedreality.IAnchorEvents;
 import com.samsungxr.mixedreality.IPlaneEvents;
 import com.samsungxr.mixedreality.arcore.ARCoreAnchor;
 import com.samsungxr.x3d.AnimationInteractivityManager;
+import com.samsungxr.x3d.InlineObject;
 import com.samsungxr.x3d.ShaderSettings;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -47,8 +48,10 @@ import org.joml.Vector3f;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import com.samsungxr.utility.Log;
+import com.samsungxr.x3d.X3Dobject;
 
 
 public class ARMain {
@@ -69,17 +72,22 @@ public class ARMain {
 
     private SelectionHandler mSelector;
 
-    private String mFilename;
+    //private String mFilename;
+    //private ArrayList<String> inlineFiles = new ArrayList<String>();
+    //private int currentInlineFile = 0;
 
     private boolean mInitialPlane = true;
     private boolean mInitAnchorNodeSet = false;
     private SXRNode mInitAnchorNode = null;
     private SXRNode mRoot = null;
+    private X3Dobject mX3Dobject = null;
     private AnimationInteractivityManager mAnimationInteractivityManager;
+    //private Vector<InlineObject> mInlineObjects = new Vector<InlineObject>();
 
     public ARMain(SXRContext sxrContext, SXRNode root,
                   ShaderSettings shaderSettings, SXRShaderId x3DShader,
-                  AnimationInteractivityManager animationInteractivityManager) {
+                  AnimationInteractivityManager animationInteractivityManager,
+                  X3Dobject x3dObject) {
         Log.e("X3DDBG", "ARMain constructor BGN.");
 
         mSXRContext = sxrContext;
@@ -91,6 +99,7 @@ public class ARMain {
         mShaderSettings = shaderSettings;
         mX3DShader = x3DShader;
         mRoot = root;
+        mX3Dobject = x3dObject;
         mAnimationInteractivityManager = animationInteractivityManager;
 
         mMixedReality = new SXRMixedReality(mMainScene);
@@ -528,7 +537,7 @@ public class ARMain {
             //    }
                 float x = pickInfo.motionEvent.getX();
                 float y = pickInfo.motionEvent.getY();
-                Log.e("X3DDBG", "ARMain onTouchEnd() anchor(x,y) (" + x + ", " + y +")" );
+                //Log.e("X3DDBG", "ARMain onTouchEnd() anchor(x,y) (" + x + ", " + y +")" );
                 SXRHitResult hit = mMixedReality.hitTest(x, y);
                 if (hit != null) {
                     Log.e("X3DDBG", "ARMain onTouchEnd() hit != null, (x, y) " + x + ", " + y + " Call addVirtualObject()");
@@ -578,7 +587,7 @@ public class ARMain {
                 Vector3f v = new Vector3f();
                 for (SXRAnchor anchor : mVirtualObjects) {
                     //Log.e("X3DDBG", "ARMain findAnchorNear for anchor");
-                    Log.e("X3DDBG", "ARMain findAnchorNear(" + x + ", " + y + ", " + z + ")");
+                    //Log.e("X3DDBG", "ARMain findAnchorNear(" + x + ", " + y + ", " + z + ")");
                     float[] anchorPose = anchor.getPose();
                     anchorMtx.set(anchorPose);
                     anchorMtx.getTranslation(v);
@@ -586,7 +595,7 @@ public class ARMain {
                     v.y -= y;
                     v.z -= z;
                     float d = v.length();
-                    Log.e("X3DDBG", "ARMain findAnchorNear x,y,z,d = "+ x + ", " + y + ", " + z + ", "+ d );
+                    //Log.e("X3DDBG", "ARMain findAnchorNear x,y,z,d = "+ x + ", " + y + ", " + z + ", "+ d );
                     if (d < maxdist) {
                         //Log.e("X3DDBG", "ARMain findAnchorNear return anchor");
                         return anchor;
@@ -606,9 +615,22 @@ public class ARMain {
      * The file that will be the AR objects
      * @param filename
      */
-    public void setX3DFile(String filename ) {
+    /*
+    public void addInlineFile(String filename ) {
         mFilename = filename;
+        inlineFiles.add( filename );
     }
+    */
+
+    /**
+     * Makes a local copy of the inLine files
+     * @param inlineObjects
+     */
+    /*
+    public void setInlineObjects(Vector<InlineObject> inlineObjects) {
+        mInlineObjects = inlineObjects;
+    }
+    */
     /**
      * Loads a 3D model using the asset loaqder and attaches
      * a collider to it so it can be picked.
@@ -624,7 +646,18 @@ public class ARMain {
         //final SXRNode sceneObject = sxrContext.getAssetLoader().loadModel("animation01.x3d");
         //final SXRNode sceneObject = sxrContext.getAssetLoader().loadModel("teapotandtorus.x3d");
         //final SXRNode sxrNode = sxrContext.getAssetLoader().loadModel("RGBConesAndCylinder.x3d");
-        final SXRNode sxrNode = sxrContext.getAssetLoader().loadModel( mFilename );
+        //final SXRNode sxrNode = sxrContext.getAssetLoader().loadModel( mFilename );
+
+        //final SXRNode sxrNode = sxrContext.getAssetLoader().loadModel( inlineFiles.get(currentInlineFile) );
+        SXRNode sxrNode = null;
+        for (int i = 0; i < mX3Dobject.inlineObjects.size(); i++) {
+            InlineObject inlineObject = mX3Dobject.inlineObjects.get(i);
+            Log.e("X3DDBG", "ARMain load3dModel " + inlineObject.getURL()[0] + ", " + inlineObject.getLoad());
+            if (inlineObject.getLoad()) {
+                sxrNode = sxrContext.getAssetLoader().loadModel(inlineObject.getURL()[0]);
+                break;
+            }
+        }
         //sxrNode.attachComponent(new SXRBoxCollider(sxrContext));
         //sxrNode.getEventReceiver().addListener(mSelector);
         attachComponentsAndEvents(sxrContext, sxrNode);
@@ -665,20 +698,6 @@ public class ARMain {
             if (mInitAnchorNodeSet) {
                 Log.e("X3DDBG", "ARMain addVirtualObject, add initial scene");
                 arModel = mInitAnchorNode;
-                //mInitAnchorNodeSet = false;
-                /*
-                if (mAnimationInteractivityManager != null) {
-                    try {
-                        mAnimationInteractivityManager.initAnimationsAndInteractivity();
-                        // Need to build a JavaScript function that constructs the
-                        // X3D data type objects used with a SCRIPT.
-                        // Scripts can also have an initialize() method.
-                        mAnimationInteractivityManager.InitializeScript();
-                    } catch (Exception exception) {
-                        Log.e(TAG, "Error initialing X3D <ROUTE> or <Script> node related to Animation or Interactivity.");
-                    }
-                }
-                */
             }
             else {
                 Log.e("X3DDBG", "ARMain addVirtualObject, add INLINE scene");
@@ -703,20 +722,15 @@ public class ARMain {
                 // initial scene, now set up the animations and interactivity
                 if (mAnimationInteractivityManager != null) {
                     try {
-                        SXRNode sxrNodeCapture = mMainScene.getNodeByName("OrangeCone");
-                        if ( sxrNodeCapture != null ) Log.e("X3DDBG", "ARMain Augmented Reality found OrangeCone.");
-                        else Log.e("X3DDBG", "ARMain Augmented Reality NOT fine OrangeCone.");
-                        //if ( mMainScene == mRoot) Log.e("X3DDBG", "ARMain Augmented Reality <ROUTE> / <Script> Animation / Interactivity 0.");
-                        //Log.e("X3DDBG", "ARMain Augmented Reality <ROUTE> / <Script> Animation / Interactivity 0.");
-                        //mRoot.addChildObject( mInitAnchorNode );
-                        Log.e("X3DDBG", "ARMain Augmented Reality <ROUTE> / <Script> Animation / Interactivity 1.");
+                        Log.e("X3DDBG", "ARMain addVirtualObject <ROUTE> / <Script>, call to initAnimationsAndInteractivity().");
                         mAnimationInteractivityManager.initAnimationsAndInteractivity();
-                        Log.e("X3DDBG", "ARMain Augmented Reality <ROUTE> / <Script> Animation / Interactivity 2.");
+                        Log.e("X3DDBG", "ARMain addVirtualObject <ROUTE> / <Script> return from initAnimationsAndInteractivity()");
+                        Log.e("X3DDBG", "   ARMain addVirtualObject <ROUTE> / <Script>, call to InitializeScript().");
                         // Need to build a JavaScript function that constructs the
                         // X3D data type objects used with a SCRIPT.
                         // Scripts can also have an initialize() method.
                         mAnimationInteractivityManager.InitializeScript();
-                        Log.e("X3DDBG", "ARMain Augmented Reality <ROUTE> / <Script> Animation / Interactivity 3.");
+                        Log.e("X3DDBG", "ARMain addVirtualObject <ROUTE> / <Script> return from InitializeScript().");
                     } catch (Exception exception) {
                         Log.e("X3DDBG", "Error initialing X3D Augmented Reality <ROUTE> or <Script> Animation or Interactivity: " + exception);
                         Log.e(TAG, "Error initialing X3D Augmented Reality <ROUTE> or <Script> Animation or Interactivity.");

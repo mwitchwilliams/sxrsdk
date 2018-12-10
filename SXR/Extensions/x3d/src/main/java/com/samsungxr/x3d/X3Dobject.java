@@ -251,7 +251,7 @@ public class X3Dobject {
     private Vector<TimeSensor> timeSensors = new Vector<TimeSensor>();
     private Vector<Interpolator> interpolators = new Vector<Interpolator>();
 
-    private Vector<InlineObject> inlineObjects = new Vector<InlineObject>();
+    public Vector<InlineObject> inlineObjects = new Vector<InlineObject>();
     private Utility utility = null;
 
     /**
@@ -300,8 +300,9 @@ public class X3Dobject {
     private boolean blockTexturing = false;
 
     // Augmented Reality variables
-    public ARMain arMain = null;
-    SXRNode arInitAnchorNode = null;
+    private ARMain arMain = null;
+    private SXRNode arInitAnchorNode = null;
+    private X3Dobject x3dObject = null;
 
 
     // The Text_Font Params class and Reset() function handle
@@ -593,6 +594,8 @@ public class X3Dobject {
             gvrContext.getMainScene().setBackgroundColor(0, 0, 0, 1);  // black background default
 
             lodManager = new LODmanager(root);
+
+            x3dObject = this;
 
             animationInteractivityManager = new AnimationInteractivityManager(
                     this, gvrContext, root, mDefinedItems, interpolators,
@@ -2592,9 +2595,14 @@ public class X3Dobject {
                     // Inline data saved, and added after the inital .x3d program is parsed
                     String name = "";
                     String[] url = new String[1];
+                    boolean load = true;
                     attributeValue = attributes.getValue("DEF");
                     if (attributeValue != null) {
                         name = attributeValue;
+                    }
+                    attributeValue = attributes.getValue("load");
+                    if (attributeValue != null) {
+                        load = utility.parseBooleanString(attributeValue);
                     }
                     attributeValue = attributes.getValue("url");
                     if (attributeValue != null) {
@@ -2602,7 +2610,7 @@ public class X3Dobject {
                         SXRNode inlineSXRNode = currentNode; // preserve
                         // the
                         // currentNode
-                        if (lodManager.isActive()  &&
+                        if (lodManager.isActive() &&
                                 (inlineSXRNode.getComponent(SXRLODGroup.getComponentType()) != null)) {
                             inlineSXRNode = AddSXRNode();
                             inlineSXRNode.setName("inlineSXRNode"
@@ -2616,10 +2624,14 @@ public class X3Dobject {
                             lodManager.increment();
                         }
                         InlineObject inlineObject = new InlineObject(inlineSXRNode,
-                                url);
+                                url, name, load);
                         inlineObjects.add(inlineObject);
+                        if ( !name.isEmpty()) {
+                            DefinedItem definedItem = new DefinedItem(name);
+                            definedItem.setInlineObject(inlineObject);
+                            mDefinedItems.add(definedItem); // Array list of DEFined items
+                        }
                     }
-
                     // LOD has it's own SXRNode which has a
                     // SXRLODGroup component attached
                     if (lodManager.isActive() && lodManager.transformLODNode == null) {
@@ -3829,7 +3841,7 @@ public class X3Dobject {
                                 arInitAnchorNode.addChildObject( currentNode );
                                 Log.e("X3DDBG", "<Scene> make call to ARMain.");
                                 arMain = new ARMain(gvrContext, root, shaderSettings, x3DShader,
-                                        animationInteractivityManager);
+                                        animationInteractivityManager, x3dObject);
                                 Log.e("X3DDBG", "X3DObject, Call to arMain.resume()");
                                 arMain.resume();
                                 Log.e("X3DDBG", "   X3DObject, arMain.resume() RETURN");
@@ -4372,29 +4384,32 @@ public class X3Dobject {
                             }
 
                             if ( arMain == null ) {
+                                if ( inlineObject.getLoad() ) {
+                                    gvrResourceVolume = new SXRResourceVolume(gvrContext, urls[j]);
+                                    gvrAndroidResource = gvrResourceVolume.openResource(filename);
 
-                                gvrResourceVolume = new SXRResourceVolume(gvrContext, urls[j]);
-                                gvrAndroidResource = gvrResourceVolume.openResource( filename );
-
-                                if ( filename.toLowerCase().endsWith(".x3d")) {
-                                    inputStream = gvrAndroidResource.getStream();
-                                    currentNode = inlineObject.getInlineSXRNode();
-                                    saxParser.parse(inputStream, userhandler);
-                                }
-                                else {
-                                    // handles glTF, OBJ, fbx or ply files
-                                    SXRExternalScene gvrExternalScene = new SXRExternalScene(gvrContext, urls[j], false);
-                                    currentNode = inlineObject.getInlineSXRNode();
-                                    if (currentNode == null) root.attachComponent(gvrExternalScene);
-                                    else currentNode.attachComponent(gvrExternalScene);
-                                    SXRScene gvrScene = gvrContext.getMainScene();
-                                    gvrExternalScene.load(gvrScene);
-                                    SXRAnimator gvrAnimator = gvrExternalScene.getAnimator();
+                                    if (filename.toLowerCase().endsWith(".x3d")) {
+                                        inputStream = gvrAndroidResource.getStream();
+                                        currentNode = inlineObject.getInlineSXRNode();
+                                        saxParser.parse(inputStream, userhandler);
+                                    } else {
+                                        // handles glTF, OBJ, fbx or ply files
+                                        SXRExternalScene gvrExternalScene = new SXRExternalScene(gvrContext, urls[j], false);
+                                        currentNode = inlineObject.getInlineSXRNode();
+                                        if (currentNode == null)
+                                            root.attachComponent(gvrExternalScene);
+                                        else currentNode.attachComponent(gvrExternalScene);
+                                        SXRScene gvrScene = gvrContext.getMainScene();
+                                        gvrExternalScene.load(gvrScene);
+                                        SXRAnimator gvrAnimator = gvrExternalScene.getAnimator();
+                                    }
                                 }
                             }
                             else {
-                                Log.e("X3DDBG", "X3Dobject <INLINE> for AR " + filename);
-                                arMain.setX3DFile( filename );
+                                Log.e("X3DDBG", "X3Dobject <INLINE> for AR " + inlineObject.getURL()[0]
+                                        + "  load=" + inlineObject.getLoad() );
+                                //arMain.addInlineFile( filename );
+                                //arMain.setInlineObjects( inlineObjects );
                             }
 
                         } catch (FileNotFoundException e) {
