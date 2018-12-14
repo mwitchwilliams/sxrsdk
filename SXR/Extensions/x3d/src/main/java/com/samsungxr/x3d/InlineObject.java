@@ -44,6 +44,17 @@ public class InlineObject {
      return this.url;
   }
 
+  public void setUrl(String url) {
+      if (this.url != null) this.url[0] = url;
+  }
+
+    public void setUrl(String[] _url) {
+      this.url = new String[_url.length];
+      for (int i = 0; i < this.url.length; i++) {
+          this.url[i] = _url[i];
+      }
+    }
+
   public int getTotalURL() {
      return url.length;
   }
