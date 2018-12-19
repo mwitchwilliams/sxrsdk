@@ -28,6 +28,7 @@ import com.samsungxr.SXRNode;
 import com.samsungxr.SXRShaderId;
 import com.samsungxr.SXRTransform;
 import com.samsungxr.mixedreality.IMixedReality;
+import com.samsungxr.mixedreality.IMixedRealityEvents;
 import com.samsungxr.mixedreality.SXRMixedReality;
 import com.samsungxr.ITouchEvents;
 import com.samsungxr.mixedreality.SXRAnchor;
@@ -105,6 +106,8 @@ public class ARMain {
         mMixedReality = new SXRMixedReality(mMainScene);
         mMixedReality.getEventReceiver().addListener(planeEventsListener);
         mMixedReality.getEventReceiver().addListener(anchorEventsListener);
+        mMixedReality.getEventReceiver().addListener(mrEventsListener);
+        //mSelector = new SampleMain.SelectionHandler(ctx, mixedReality);
 
     }
 
@@ -118,6 +121,29 @@ public class ARMain {
         mMixedReality.resume();
         Log.e("X3DDBG", "ARMain resume() END.");
     }
+
+
+    private IMixedRealityEvents mrEventsListener = new IMixedRealityEvents() {
+        /**
+         * Get the depth of the touch screen in the 3D world
+         * and give it to the cursor controller so touch
+         * events will be handled properly.
+         */
+        @Override
+        public void onMixedRealityStart(IMixedReality mr)
+        {
+            Log.e("X3DDBG", "ARMain onMixedRealityStart()");
+            float screenDepth = mr.getScreenDepth();
+            mr.getPassThroughObject().getEventReceiver().addListener(mTouchHandler);
+            helper.initCursorController(mSXRContext, mTouchHandler, screenDepth);
+        }
+
+        @Override
+        public void onMixedRealityStop(IMixedReality mr) { }
+
+        @Override
+        public void onMixedRealityUpdate(IMixedReality mr) { }
+    };
 
 /*
     @Override
@@ -142,6 +168,7 @@ public class ARMain {
          * and give it to the cursor controller so touch
          * events will be handled properly.
          */
+        /*
         @Override
         public void onStartPlaneDetection(IMixedReality mr) {
             //gvrPlane.setSceneObject(helper.createQuadPlane(getGVRContext()));
@@ -155,11 +182,14 @@ public class ARMain {
             mr.getPassThroughObject().getEventReceiver().addListener(mTouchHandler);
             helper.initCursorController(mSXRContext, mTouchHandler, screenDepth);
         }
+        */
 
+        /*
         @Override
         public void onStopPlaneDetection(IMixedReality mr) {
 
         }
+        */
 
         /**
          * Place a transparent quad in the 3D scene to indicate
@@ -243,6 +273,10 @@ public class ARMain {
             //+ ", " + parentPlane.getTransform().getPositionY()+ ", " + parentPlane.getTransform().getPositionZ());
 
         }
+
+        public void onPlaneGeometryChange(SXRPlane plane) {
+
+        }
     };  // end IPlaneEvents
     /*{
         @Override
@@ -278,6 +312,7 @@ public class ARMain {
         @Override
         public void onAnchorStateChange(SXRAnchor SXRAnchor, SXRTrackingState state)
         {
+            Log.e("X3DDBG", "ARMain anchorEventsListener");
             SXRAnchor.setEnable(state == SXRTrackingState.TRACKING);
         }
     };
@@ -307,6 +342,7 @@ public class ARMain {
 
         public SelectionHandler(SXRContext ctx, IMixedReality mr) {
             super();
+            Log.e("X3DDBG", "ARMain SelectionHandler CONSTRUCTOR.");
             mMixedReality = mr;
             mSelectionLight = new SXRNode(ctx);
             mSelectionLight.setName("SelectionLight");
@@ -381,7 +417,34 @@ public class ARMain {
         }
 
         public void onTouchEnd(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-        }
+            Log.e("X3DDBG", "ARMain SelectionHandler onTouchEnd");
+            if (getSelected() != null)
+            {
+                Log.e("X3DDBG", "ARMain SelectionHandler onTouchEnd, getSelected() != null");
+                //mSelector.endTouch();
+            }
+            else
+            {
+                Log.e("X3DDBG", "ARMain SelectionHandler onTouchEnd, getSelected() == null");
+                /*
+                SXRAnchor anchor = findAnchorNear(pickInfo.hitLocation[0],
+                        pickInfo.hitLocation[1],
+                        pickInfo.hitLocation[2],
+                        300);
+                if (anchor != null)
+                {
+                    return;
+                }
+                float x = pickInfo.motionEvent.getX();
+                float y = pickInfo.motionEvent.getY();
+                SXRHitResult hit = mMixedReality.hitTest(x, y);
+                if (hit != null)
+                {
+                    addVirtualObject(hit.getPose());
+                }
+                */
+            }
+        }  //  end onTouchEnd
 
         int cnt = 0;
         public void onInside(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
@@ -516,7 +579,7 @@ public class ARMain {
         public void onTouchEnd(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
             Log.e("X3DDBG", "ARMain DragHandler onTouchEnd( , )");
             if (SelectionHandler.getSelected() != null) {
-                Log.e("X3DDBG", "ARMain onTouchEnd() SelectionHandler.getSelected() != null");
+                Log.e("X3DDBG", "ARMain DragHandler onTouchEnd() SelectionHandler.getSelected() != null");
                 mSelector.endTouch();
             } else {
                 //Log.e("X3DDBG", "ARMain onTouchEnd() findAnchorNear(" + pickInfo.hitLocation[0] + ", " +
@@ -548,7 +611,7 @@ public class ARMain {
         }
 
         public void onInside(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-            //Log.e("X3DDBG", "ARMain DragHandler onInside( , )");
+            Log.e("X3DDBG", "ARMain DragHandler onInside( , )");
             SXRNode selected = mSelector.getSelected();
 
             if (pickInfo.motionEvent == null) {
@@ -582,7 +645,7 @@ public class ARMain {
         private SXRAnchor findAnchorNear(float x, float y, float z, float maxdist)
         {
             try {
-                //Log.e("X3DDBG", "ARMain findAnchorNear(" + x + ", " + y + ", " + z + ")");
+                Log.e("X3DDBG", "ARMain DragHandler findAnchorNear(" + x + ", " + y + ", " + z + ")");
                 Matrix4f anchorMtx = new Matrix4f();
                 Vector3f v = new Vector3f();
                 for (SXRAnchor anchor : mVirtualObjects) {
@@ -603,7 +666,7 @@ public class ARMain {
                 }
             }
             catch (Exception e) {
-                Log.e("X3DDBG", "ARMain findAnchorNear exception: " + e);
+                Log.e("X3DDBG", "ARMain DragHandler findAnchorNear exception: " + e);
             }
             //Log.e("X3DDBG", "ARMain findAnchorNear return null");
             return null;
@@ -611,26 +674,6 @@ public class ARMain {
     };  // end DragHandler
 
 
-    /**
-     * The file that will be the AR objects
-     * @param filename
-     */
-    /*
-    public void addInlineFile(String filename ) {
-        mFilename = filename;
-        inlineFiles.add( filename );
-    }
-    */
-
-    /**
-     * Makes a local copy of the inLine files
-     * @param inlineObjects
-     */
-    /*
-    public void setInlineObjects(Vector<InlineObject> inlineObjects) {
-        mInlineObjects = inlineObjects;
-    }
-    */
     /**
      * Loads a 3D model using the asset loaqder and attaches
      * a collider to it so it can be picked.
@@ -655,12 +698,14 @@ public class ARMain {
             Log.e("X3DDBG", "ARMain load3dModel " + inlineObject.getURL()[0] + ", " + inlineObject.getLoad());
             if (inlineObject.getLoad()) {
                 sxrNode = sxrContext.getAssetLoader().loadModel(inlineObject.getURL()[0]);
+                sxrNode.attachComponent(new SXRBoxCollider(sxrContext));
+                sxrNode.getEventReceiver().addListener(mSelector);
                 break;
             }
         }
         //sxrNode.attachComponent(new SXRBoxCollider(sxrContext));
         //sxrNode.getEventReceiver().addListener(mSelector);
-        attachComponentsAndEvents(sxrContext, sxrNode);
+        //attachComponentsAndEvents(sxrContext, sxrNode);
         return sxrNode;
     }
 
