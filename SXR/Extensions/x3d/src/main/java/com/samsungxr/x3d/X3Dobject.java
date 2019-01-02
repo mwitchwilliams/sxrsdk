@@ -3173,8 +3173,12 @@ public class X3Dobject {
                     attributeValue = attributes.getValue("visibilityLimit");
                     if (attributeValue != null) {
                         visibilityLimit = utility.parseSingleFloatString(attributeValue, false, true);
-                        Log.e(TAG,
-                                "NavigationInfo visibilityLimit attribute not implemented. ");
+                        Log.e("X3DDBG",
+                                "NavigationInfo visibilityLimit=" + visibilityLimit + " not implemented. ");
+                        SXRCameraRig mainCameraRig = gvrContext.getMainScene().getMainCameraRig();
+                        Log.e("X3DDBG", " farClipplingPlane=" + gvrContext.getMainScene().getMainCameraRig().getFarClippingDistance() );
+                        mainCameraRig.setFarClippingDistance( gvrContext.getMainScene().getMainCameraRig().getFarClippingDistance() + 1200 );
+                        Log.e("X3DDBG", " SET farClipplingPlane=" + gvrContext.getMainScene().getMainCameraRig().getFarClippingDistance() );
                     }
                     if (headlight) {
                         SXRNode headlightNode = new SXRNode(gvrContext);
@@ -4303,13 +4307,7 @@ public class X3Dobject {
                     else {
                         //AR content
                         mainCameraRig.getTransform().setPosition(0, 0, 0);
-                        //Log.e("X3DDBG", "</Scene> AR scene, currentNode = " + currentNode);
-                        //Log.e("X3DDBG", "</Scene> AR scene, arInitAnchorNode = " + arInitAnchorNode);
-                        //if (currentNode != null) arMain.attachComponentsAndEvents(gvrContext, currentNode);
-                        //if ( arInitAnchorNode != null) arMain.attachComponentsAndEvents(gvrContext, arInitAnchorNode);
-                        // The initial AR scene is now set
                         arMain.setInitAnchorNode( true, arInitAnchorNode);
-                        //currentNode = null;
                     }
                 } // end setting based on new camera rig
 
@@ -4408,8 +4406,6 @@ public class X3Dobject {
                             else {
                                 Log.e("X3DDBG", "X3Dobject <INLINE> for AR " + inlineObject.getURL()[0]
                                         + "  load=" + inlineObject.getLoad() );
-                                //arMain.addInlineFile( filename );
-                                //arMain.setInlineObjects( inlineObjects );
                             }
 
                         } catch (FileNotFoundException e) {
@@ -4440,23 +4436,6 @@ public class X3Dobject {
                     Log.e(TAG, "Error initialing X3D <ROUTE> or <Script> node related to Animation or Interactivity.");
                 }
             }
-            /*
-            else {
-                // an Augemented Reality scene
-                try {
-                    Log.e("X3DDBG", "X3DObject, Call to arMain.resume()");
-                    //arMain.resume();
-                    arMain.attachComponentsAndEvents(gvrContext, final SXRNode sxrNode);
-
-                    Log.e("X3DDBG", "X3DObject, arMain.resume() RETURN");
-                }
-                catch (Exception exception) {
-                    Log.e("X3DDBG", "Error invoking AR: " + exception);
-                    Log.e(TAG, "Error invoking AR: " + exception);
-                }
-            }
-            */
-
         } catch (Exception exception) {
 
             Log.e("X3DDBG", "X3Dobject Exception = " + exception);
