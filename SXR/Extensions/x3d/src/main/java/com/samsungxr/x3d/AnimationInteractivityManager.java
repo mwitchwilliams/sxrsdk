@@ -1932,7 +1932,6 @@ public class AnimationInteractivityManager {
                         }
                     }  //  end SFString
                     else if (fieldType.equalsIgnoreCase("MFString")) {
-                        Log.e("X3DDBG", "AnimIntMgr SetJavaScriptArguments MFString");
                         //TODO: will need to handle multiple strings particularly for Text node
                         SXRTexture gvrTexture = definedItem.getSXRTexture();
                         InlineObject inlineObject = definedItem.getInlineObject();
@@ -1950,27 +1949,18 @@ public class AnimationInteractivityManager {
                             else Log.e(TAG, "ImageTexture SCRIPT node url field not found");
                         }
                         else if (inlineObject != null){
-                            Log.e("X3DDBG", "AnimIntMgr SetJavaScriptArguments MFString, inlineObject != null");
-                            Log.e("X3DDBG", "   AnimIntMgr SetJavaScriptArguments MFString=" + scriptObject.getFromDefinedItemField(field));
                             if ( StringFieldMatch( scriptObject.getFromDefinedItemField(field), "url") ) {
-                                Log.e("X3DDBG", "   AnimIntMgr SetJavaScriptArguments MFString, match url");
                                 String[] url = inlineObject.getURL();
                                 if ( url != null ) {
-                                    Log.e("X3DDBG", "      AnimIntMgr SetJavaScriptArguments MFString, url[0] = " + url[0]);
                                     scriptParameters.add("\'" + url[0] + "\'");
-                                    for (int i = 0; i < scriptParameters.size(); i++) {
-                                        Log.e("X3DDBG", "         scriptParameters[" + i+ "] = " + scriptParameters.get(i));
-                                    }
                                 }
                                 else {
-                                    Log.e("X3DDBG", "      AnimIntMgr SetJavaScriptArguments MFString, InlineObject name not DEFined");
                                     Log.e(TAG, "InlineObject name not DEFined");
                                 }
                             }
                             else Log.e(TAG, "InlineObject SCRIPT node url field not found");
                         }
                         else {
-                            Log.e("X3DDBG", "AnimIntMgr SetJavaScriptArguments MFString, gvrTexture != null");
                             Log.e(TAG, "Unable to set MFString in SCRIPT node");
                         }
                     } // end MFString
@@ -2671,13 +2661,11 @@ public class AnimationInteractivityManager {
                                 }
                             }  // end SXRTexture != null
                             else if (scriptObjectToDefinedItem.getInlineObject() != null) {
-                                Log.e("X3DDBG", "   X3Dobject SetResultsFromScript MFString scriptObjectToDefinedItem.getInlineObject() != null");
                                 if (StringFieldMatch(scriptObject.getToDefinedItemField(fieldNode), "url")) {
-                                    Log.e("X3DDBG", "      X3Dobject SetResultsFromScript MFString matches URL " + mfString.get1Value(0));
                                     scriptObjectToDefinedItem.getInlineObject().setUrl( mfString.get1Value(0) );
                                 }
                                 else {
-                                    Log.e("X3DDBG", "      X3Dobject SetResultsFromScript MFString NOT URL");
+                                    Log.e(TAG, "AnimationInteractivityManager SetResultsFromScript MFString NOT URL");
                                 }
                             }
                             else if (scriptObjectToDefinedItem.getSXRVideoNode() != null) {

@@ -82,7 +82,6 @@ public class ARMain {
                   ShaderSettings shaderSettings, SXRShaderId x3DShader,
                   AnimationInteractivityManager animationInteractivityManager,
                   X3Dobject x3dObject) {
-        Log.e("X3DDBG", "ARMain constructor BGN.");
 
         mSXRContext = sxrContext;
         mMainScene = mSXRContext.getMainScene();
@@ -100,9 +99,6 @@ public class ARMain {
         mMixedReality.getEventReceiver().addListener(planeEventsListener);
         mMixedReality.getEventReceiver().addListener(anchorEventsListener);
         mMixedReality.getEventReceiver().addListener(mrEventsListener);
-        // This enables the SelectionHandler methods:
-        //mSelector = new SelectionHandler(mSXRContext, mMixedReality);
-
     }
 
     public void setInitAnchorNode(boolean initAnchorNodeSet, SXRNode initAnchorNode) {
@@ -111,9 +107,7 @@ public class ARMain {
     }
 
     public void resume() {
-
         mMixedReality.resume();
-        Log.e("X3DDBG", "ARMain resume() END.");
     }
 
 
@@ -126,7 +120,6 @@ public class ARMain {
         @Override
         public void onMixedRealityStart(IMixedReality mr)
         {
-            Log.e("X3DDBG", "ARMain onMixedRealityStart()");
             float screenDepth = mr.getScreenDepth();
             mr.getPassThroughObject().getEventReceiver().addListener(mTouchHandler);
             helper.initCursorController(mSXRContext, mTouchHandler, screenDepth);
@@ -157,9 +150,8 @@ public class ARMain {
          */
         @Override
         public void onPlaneDetected(SXRPlane plane) {
-            Log.e("X3DDBG", "ARMain onPlaneDetected.");
             if (mInitialPlane) {
-                Log.e("X3DDBG", "ARMain onPlaneDetected INITIAL PLANE.");
+                ;
             }
             if (plane.getPlaneType() == SXRPlane.Type.VERTICAL)
             {
@@ -170,20 +162,8 @@ public class ARMain {
             float[] pose = new float[16];
 
             plane.getCenterPose(pose);
-            Log.e("X3DDBG", "ARMain onPlaneDetected createQuad: " + planeMesh.getName());
-            /*
-            Log.e("X3DDBG", "      pose[][]= [" + pose[ 0] + ", " + pose[ 4] + ", " + pose[ 8] + ", " + pose[12] + "]");
-            Log.e("X3DDBG", "                [" + pose[ 1] + ", " + pose[ 5] + ", " + pose[ 9] + ", " + pose[13] + "]");
-            Log.e("X3DDBG", "                [" + pose[ 2] + ", " + pose[ 6] + ", " + pose[10] + ", " + pose[14] + "]");
-            Log.e("X3DDBG", "                [" + pose[ 3] + ", " + pose[ 7] + ", " + pose[11] + ", " + pose[15] + "]");
-*/
-            Log.e("X3DDBG", "      pose[12][13][14]= (" + pose[12] + ", " + pose[13] + ", " + pose[14] + ")");
-
             planeMesh.attachComponent(plane);
-            //Log.e("X3DDBG", "planeMesh(x, y, z): ( " + planeMesh.getTransform().getPositionX()
-            //    + ", " + planeMesh.getTransform().getPositionY() + ", " + planeMesh.getTransform().getPositionZ() + ")");
             mMainScene.addNode(planeMesh);
-            //addVirtualObject(pose);
         }  //  end onPlaneDetected
 
         /**
@@ -193,45 +173,32 @@ public class ARMain {
 
         @Override
         public void onPlaneStateChange(SXRPlane sxrPlane, SXRTrackingState trackingState) {
-            Log.e("X3DDBG", "ARMain onPlaneStateChange trackingState=" + trackingState);
             sxrPlane.setEnable(trackingState == SXRTrackingState.TRACKING);
             if (mInitialPlane) {
                 SXRMixedReality sxrMixedReality = getSXRMixedReality();
-                Log.e("X3DDBG", "ARMain onPlaneStateChange INITIAL PLANE mInitialPlane=" + mInitialPlane);
                 float[] pose = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
                 SXRNode arAnchorObj = null;
                 try {
                     arAnchorObj = sxrMixedReality.createAnchorNode(pose);
-                    Log.e("X3DDBG", "onPlaneStateChange: arAnchorObj = sxrMixedReality.createAnchorNode(pose) OK");
                 }
                 catch (com.google.ar.core.exceptions.NotTrackingException nte) {
-                    Log.e("X3DDBG", "onPlaneStateChange arAnchorObj NotTrackingException " + nte);
+                    Log.e(TAG, "onPlaneStateChange arAnchorObj NotTrackingException " + nte);
                 }
                 catch (Exception e) {
-                    Log.e("X3DDBG", "onPlaneStateChange arAnchorObj Exception " + e);
+                    Log.e(TAG, "onPlaneStateChange arAnchorObj Exception " + e);
                 }
                 ARCoreAnchor anchor = (ARCoreAnchor) arAnchorObj.getComponent(SXRAnchor.getComponentType());
-                // commented out cause I reset 'setTrackingState' back to protected
-                //anchor.setTrackingState(SXRTrackingState.PAUSED );
-                //SXRAnchor sxrAnchor = (SXRAnchor) anchor;
-                Log.e("X3DDBG", "   onPlaneStateChange addSXRAnchor()");
                 addSXRAnchor( (SXRAnchor) anchor );
-                Log.e("X3DDBG", "   onPlaneStateChange returned from addSXRAnchor()");
                 mRoot.addChildObject( arAnchorObj );
-
             }
             mInitialPlane = false;
-
-        }
+        }  //  end onPlaneStateChange
 
         @Override
         public void onPlaneMerging(SXRPlane childPlane, SXRPlane parentPlane) {
-            Log.e("X3DDBG", "ARMain onPlaneMerging parent(" + parentPlane.getTransform().getPositionX()
-            + ", " + parentPlane.getTransform().getPositionY()+ ", " + parentPlane.getTransform().getPositionZ() + ")");
         }
 
         public void onPlaneGeometryChange(SXRPlane plane) {
-
         }
     };  // end IPlaneEvents
 
@@ -243,7 +210,6 @@ public class ARMain {
         @Override
         public void onAnchorStateChange(SXRAnchor SXRAnchor, SXRTrackingState state)
         {
-            Log.e("X3DDBG", "ARMain anchorEventsListener");
             SXRAnchor.setEnable(state == SXRTrackingState.TRACKING);
         }
     };
@@ -273,7 +239,6 @@ public class ARMain {
 
         public SelectionHandler(SXRContext ctx, IMixedReality mr) {
             super();
-            Log.e("X3DDBG", "ARMain SelectionHandler CONSTRUCTOR.");
             mMixedReality = mr;
             mSelectionLight = new SXRNode(ctx);
             mSelectionLight.setName("SelectionLight");
@@ -292,7 +257,6 @@ public class ARMain {
          * adding a point light under its parent.
          */
         public void onEnter(SXRNode target, SXRPicker.SXRPickedObject pickInfo) {
-            Log.e("X3DDBG", "ARMain SelectionHandler onEnter.");
             if (mSelected != null) {
                 return;
             }
@@ -323,7 +287,6 @@ public class ARMain {
          * When the object is no longer selected, its selection light is disabled.
          */
         public void onExit(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-            Log.e("X3DDBG", "ARMain SelectionHandler onExit.");
             if ((mSelected == sceneObj) || (mSelected == null)) {
                 mSelectionLight.getComponent(SXRLight.getComponentType()).disable();
                 mSelected = null;
@@ -335,7 +298,6 @@ public class ARMain {
          * If another object is already selected, ignore the touch event.
          */
         public void onTouchStart(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-            Log.e("X3DDBG", "ARMain SelectionHandler onTouchStart BGN");
             if (pickInfo.motionEvent == null) {
                 return;
             }
@@ -348,32 +310,11 @@ public class ARMain {
         }
 
         public void onTouchEnd(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-            Log.e("X3DDBG", "ARMain SelectionHandler onTouchEnd");
             if (getSelected() != null)
             {
-                Log.e("X3DDBG", "ARMain SelectionHandler onTouchEnd, getSelected() != null");
-                //mSelector.endTouch();
             }
             else
             {
-                Log.e("X3DDBG", "ARMain SelectionHandler onTouchEnd, getSelected() == null");
-                /*
-                SXRAnchor anchor = findAnchorNear(pickInfo.hitLocation[0],
-                        pickInfo.hitLocation[1],
-                        pickInfo.hitLocation[2],
-                        300);
-                if (anchor != null)
-                {
-                    return;
-                }
-                float x = pickInfo.motionEvent.getX();
-                float y = pickInfo.motionEvent.getY();
-                SXRHitResult hit = mMixedReality.hitTest(x, y);
-                if (hit != null)
-                {
-                    addVirtualObject(hit.getPose());
-                }
-                */
             }
         }  //  end onTouchEnd
 
@@ -391,7 +332,6 @@ public class ARMain {
          * by MixedReality).
          */
         private void scaleRotate(float rotateDelta, float scaleDelta) {
-            Log.e("X3DDBG", "ARMain SelectionHandler scaleRotate( , ) BGN");
             SXRNode selected = getSelected();
             SXRTransform t = selected.getTransform();
             float scale = t.getScaleX();
@@ -445,7 +385,6 @@ public class ARMain {
         }
 
         public void startTouch(SXRNode sceneObj, float hitx, float hity, int mode) {
-            Log.e("X3DDBG", "ARMain SelectionHandler startTouch( , , , ) BGN");
             SXRPointLight light =
                     (SXRPointLight) mSelectionLight.getComponent(SXRLight.getComponentType());
             mSelectionMode = mode;
@@ -499,19 +438,13 @@ public class ARMain {
 
         @Override
         public void onTouchStart(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-            //Log.e("X3DDBG", "ARMain DragHandler onTouchStart()");
         }
 
         @Override
         public void onTouchEnd(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-            Log.e("X3DDBG", "ARMain DragHandler onTouchEnd( , )");
             if (SelectionHandler.getSelected() != null) {
-                Log.e("X3DDBG", "ARMain DragHandler onTouchEnd() SelectionHandler.getSelected() != null");
                 mSelector.endTouch();
             } else {
-                //Log.e("X3DDBG", "ARMain onTouchEnd() findAnchorNear(" + pickInfo.hitLocation[0] + ", " +
-                //                                pickInfo.hitLocation[1] + ", " +
-                //                                pickInfo.hitLocation[2] +")");
                 try {
                     SXRAnchor anchor = findAnchorNear(pickInfo.hitLocation[0],
                             pickInfo.hitLocation[1],
@@ -519,52 +452,18 @@ public class ARMain {
                             300);
                 }
                 catch(Exception e) {
-                    Log.e("X3DDBG", "ARMain onTouchEnd() findAnchorNear Exception: " + e);
+                    Log.e(TAG, "ARMain onTouchEnd() findAnchorNear Exception: " + e);
                 }
-            //    if (anchor != null) {
-            //        Log.e("X3DDBG", "ARMain onTouchEnd() anchor != null");
-            //        return;
-            //    }
                 float x = pickInfo.motionEvent.getX();
                 float y = pickInfo.motionEvent.getY();
-                //Log.e("X3DDBG", "ARMain onTouchEnd() anchor(x,y) (" + x + ", " + y +")" );
                 SXRHitResult hit = mMixedReality.hitTest(x, y);
                 if (hit != null) {
-                    Log.e("X3DDBG", "ARMain onTouchEnd(): Call addVirtualObject()");
                     addVirtualObject(hit.getPose());
                 }
-                else Log.e("X3DDBG", "ARMain onTouchEnd() hit == null");
             }
         }
 
         public void onInside(SXRNode sceneObj, SXRPicker.SXRPickedObject pickInfo) {
-            //Log.e("X3DDBG", "ARMain DragHandler onInside( , )");
-            /*
-            SXRNode selected = mSelector.getSelected();
-
-            if (pickInfo.motionEvent == null) {
-                return;
-            }
-            if (pickInfo.touched)           // currently touching an object?
-            {
-                if (selected != null)       // is a 3D object selected?
-                {
-                    mSelector.update(pickInfo);
-                } else {
-                    SXRAnchor anchor = findAnchorNear(pickInfo.hitLocation[0],
-                            pickInfo.hitLocation[1],
-                            pickInfo.hitLocation[2],
-                            150);
-                    if (anchor != null) {
-                        selected = anchor.getOwnerObject();
-                        mSelector.startTouch(selected.getChildByIndex(0),
-                                pickInfo.motionEvent.getX(),
-                                pickInfo.motionEvent.getY(),
-                                SelectionHandler.DRAG);
-                    }
-                }
-            }
-            */
         }
 
         /**
@@ -574,12 +473,9 @@ public class ARMain {
         private SXRAnchor findAnchorNear(float x, float y, float z, float maxdist)
         {
             try {
-                //Log.e("X3DDBG", "ARMain DragHandler findAnchorNear(" + x + ", " + y + ", " + z + ")");
                 Matrix4f anchorMtx = new Matrix4f();
                 Vector3f v = new Vector3f();
                 for (SXRAnchor anchor : mVirtualObjects) {
-                    //Log.e("X3DDBG", "ARMain findAnchorNear for anchor");
-                    //Log.e("X3DDBG", "ARMain findAnchorNear(" + x + ", " + y + ", " + z + ")");
                     float[] anchorPose = anchor.getPose();
                     anchorMtx.set(anchorPose);
                     anchorMtx.getTranslation(v);
@@ -587,15 +483,13 @@ public class ARMain {
                     v.y -= y;
                     v.z -= z;
                     float d = v.length();
-                    //Log.e("X3DDBG", "ARMain findAnchorNear x,y,z,d = "+ x + ", " + y + ", " + z + ", "+ d );
                     if (d < maxdist) {
-                        //Log.e("X3DDBG", "ARMain findAnchorNear return anchor");
                         return anchor;
                     }
                 }
             }
             catch (Exception e) {
-                Log.e("X3DDBG", "ARMain DragHandler findAnchorNear exception: " + e);
+                Log.e(TAG, "ARMain DragHandler findAnchorNear exception: " + e);
             }
             return null;
         } // end findAnchorNear
@@ -615,28 +509,14 @@ public class ARMain {
         SXRNode sxrNode = null;
         for (int i = 0; i < mX3Dobject.inlineObjects.size(); i++) {
             InlineObject inlineObject = mX3Dobject.inlineObjects.get(i);
-            Log.e("X3DDBG", "ARMain load3dModel " + inlineObject.getURL()[0] + ", " + inlineObject.getLoad());
             if (inlineObject.getLoad()) {
                 sxrNode = sxrContext.getAssetLoader().loadModel(inlineObject.getURL()[0]);
-                // This may only need to be used if we use SelectionHandler
-                //sxrNode.attachComponent(new SXRBoxCollider(sxrContext));
-                //sxrNode.getEventReceiver().addListener(mSelector);
                 break;
             }
         }
         return sxrNode;
     }
-/*
-    public void attachComponentsAndEvents(final SXRContext sxrContext, final SXRNode sxrNode)
-    {
-        if (sxrNode != null) {
-            //final SXRNode sxrNode = sxrContext.getAssetLoader().loadModel("RGBConesAndCylinder.x3d");
-            sxrNode.attachComponent(new SXRBoxCollider(sxrContext));
-            sxrNode.getEventReceiver().addListener(mSelector);
-            //return sxrNode;
-        }
-    }
-*/
+
     public void addSXRAnchor( SXRAnchor sxrAnchor) {
         mVirtualObjects.add( sxrAnchor );
         mVirtObjCount++;
@@ -651,20 +531,11 @@ public class ARMain {
         }
         try
         {
-            /*
-            Log.e("X3DDBG", "ARMain addVirtualObject() mVirtObjCount=" + mVirtObjCount);
-            Log.e("X3DDBG", "      pose[][]= [" + pose[ 0] + ", " + pose[ 4] + ", " + pose[ 8] + ", " + pose[12] + "]");
-            Log.e("X3DDBG", "                [" + pose[ 1] + ", " + pose[ 5] + ", " + pose[ 9] + ", " + pose[13] + "]");
-            Log.e("X3DDBG", "                [" + pose[ 2] + ", " + pose[ 6] + ", " + pose[10] + ", " + pose[14] + "]");
-            Log.e("X3DDBG", "                [" + pose[ 3] + ", " + pose[ 7] + ", " + pose[11] + ", " + pose[15] + "]");
-            */
             SXRNode arModel = null;
             if (mInitAnchorNodeSet) {
-                Log.e("X3DDBG", "ARMain addVirtualObject, add initial scene");
                 arModel = mInitAnchorNode;
             }
             else {
-                Log.e("X3DDBG", "ARMain addVirtualObject, add INLINE scene");
                 arModel = load3dModel(mSXRContext);
             }
             SXRNode anchorObj = mMixedReality.createAnchorNode(pose);
@@ -678,21 +549,16 @@ public class ARMain {
                 mMainScene.addNode(anchorObj);
             }
             else if (mInitAnchorNodeSet) {
-                Log.e("X3DDBG", "ARMain addVirtualObject, add initial scene");
                 mRoot.addChildObject( anchorObj );
                 // initial scene, now set up the animations and interactivity
                 if (mAnimationInteractivityManager != null) {
                     try {
-                        Log.e("X3DDBG", "ARMain addVirtualObject <ROUTE> / <Script>, call to initAnim&Interactivity().");
                         mAnimationInteractivityManager.initAnimationsAndInteractivity();
-                        Log.e("X3DDBG", "ARMain addVirtualObject <ROUTE> / <Script> return from initAnim&Interactivity(), , call InitScript()");
                         // Need to build a JavaScript function that constructs the
                         // X3D data type objects used with a SCRIPT.
                         // Scripts can also have an initialize() method.
                         mAnimationInteractivityManager.InitializeScript();
-                        Log.e("X3DDBG", "ARMain addVirtualObject <ROUTE> / <Script> return from InitializeScript().");
                     } catch (Exception exception) {
-                        Log.e("X3DDBG", "Error initialing X3D Augmented Reality <ROUTE> or <Script> Animation or Interactivity: " + exception);
                         Log.e(TAG, "Error initialing X3D Augmented Reality <ROUTE> or <Script> Animation or Interactivity.");
                     }
                 }
@@ -708,7 +574,6 @@ public class ARMain {
     }
 
     public SXRMixedReality getSXRMixedReality() {
-        Log.e("X3DDBG", "ARMain getSXRMixedReality()");
         return mMixedReality;
     }
 

@@ -761,7 +761,6 @@ public class X3Dobject {
                     attributeValue = attributes.getValue("DEF");
                     if (attributeValue != null) {
                         name = attributeValue;
-                        Log.e("X3DDBG", "X3Dobject Transform DEF= " + name );
                     }
                     // Order for Transformations:
                     // P' = T * C * R * SR * S * -SR * -C * P
@@ -772,8 +771,6 @@ public class X3Dobject {
                     if (translationAttribute != null) {
                         translation = utility.parseFixedLengthFloatString(translationAttribute, 3,
                                 false, false);
-                        Log.e("X3DDBG", "   translation = (" + translation[0] + ", " +
-                                translation[1] + ", " +  translation[2] + ")" );
                     }
                     String centerAttribute = attributes.getValue("center");
                     if (centerAttribute != null) {
@@ -3173,12 +3170,8 @@ public class X3Dobject {
                     attributeValue = attributes.getValue("visibilityLimit");
                     if (attributeValue != null) {
                         visibilityLimit = utility.parseSingleFloatString(attributeValue, false, true);
-                        Log.e("X3DDBG",
-                                "NavigationInfo visibilityLimit=" + visibilityLimit + " not implemented. ");
                         SXRCameraRig mainCameraRig = gvrContext.getMainScene().getMainCameraRig();
-                        Log.e("X3DDBG", " farClipplingPlane=" + gvrContext.getMainScene().getMainCameraRig().getFarClippingDistance() );
-                        mainCameraRig.setFarClippingDistance( gvrContext.getMainScene().getMainCameraRig().getFarClippingDistance() + 1200 );
-                        Log.e("X3DDBG", " SET farClipplingPlane=" + gvrContext.getMainScene().getMainCameraRig().getFarClippingDistance() );
+                        mainCameraRig.setFarClippingDistance( visibilityLimit * 100 );
                     }
                     if (headlight) {
                         SXRNode headlightNode = new SXRNode(gvrContext);
@@ -3843,14 +3836,10 @@ public class X3Dobject {
                                 arInitAnchorNode = new SXRNode( gvrContext );
                                 currentNode =  new SXRNode( gvrContext );
                                 arInitAnchorNode.addChildObject( currentNode );
-                                Log.e("X3DDBG", "<Scene> make call to ARMain.");
                                 arMain = new ARMain(gvrContext, root, shaderSettings, x3DShader,
                                         animationInteractivityManager, x3dObject);
-                                Log.e("X3DDBG", "X3DObject, Call to arMain.resume()");
                                 arMain.resume();
-                                Log.e("X3DDBG", "   X3DObject, arMain.resume() RETURN");
                             } catch (Exception e) {
-                                Log.e("X3DDBG", "X3Dobject, <Scene> Error invoking AR: " + e);
                                 Log.e(TAG, "Error invoking X3D's Augmented Reality: " + e);
                             }
                         }
@@ -4403,11 +4392,6 @@ public class X3Dobject {
                                     }
                                 }
                             }
-                            else {
-                                Log.e("X3DDBG", "X3Dobject <INLINE> for AR " + inlineObject.getURL()[0]
-                                        + "  load=" + inlineObject.getLoad() );
-                            }
-
                         } catch (FileNotFoundException e) {
                             Log.e(TAG,
                                     "Inline file reading: File Not Found: url " + urls[j] + ", Exception "
@@ -4438,7 +4422,6 @@ public class X3Dobject {
             }
         } catch (Exception exception) {
 
-            Log.e("X3DDBG", "X3Dobject Exception = " + exception);
             Log.e(TAG, "X3D/XML Parsing Exception = " + exception);
         }
 
